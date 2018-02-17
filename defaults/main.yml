@@ -1,0 +1,33 @@
+---
+
+# maximum possible number of directories lsyncd watches.
+# This is a kernel limit which defaults to 8192.
+# Consider raise this number when lsyncd is watching huge number of files.
+lsyncd_ionotify_max_watches: 65536
+
+# hostname of lsyncd master. Should be one inventory_hostname in inventory.
+# There's one and only one master host.
+lsyncd_master_hostname:
+
+# filename of ssh private key on master. A new key pair will be generated
+# automatically if the file doesn't exist.
+lsyncd_master_identity_file: /root/.ssh/id_rsa_lsyncd
+
+# list of FQDN hostnames or IP addresses of lsyncd slave hosts.
+# There can be multiple slave hosts.
+lsyncd_slave_hosts: []
+
+# the username on the slave hosts which master uses to login via SSH.
+lsyncd_slave_username: lsyncd
+
+# list of sources on master which are to sync with targets on slave hosts.
+# There can be multiple source and target pairs.
+lsyncd_sources_and_targets: []
+#  - source: /home/user/files/
+#    target: /backup/user/files/
+#  - source: /var/www
+#    target: /var/www
+
+# lsyncd parameter tweaks
+lsyncd_settings_status_interval: 10
+lsyncd_sync_delay: 15

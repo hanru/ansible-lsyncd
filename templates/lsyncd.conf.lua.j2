@@ -1,0 +1,39 @@
+--
+-- {{ ansible_managed }}
+--
+
+settings {
+    logfile = "/var/log/lsyncd.log",
+    statusFile = "/var/lib/lsyncd/status",
+    statusInterval = {{ lsyncd_settings_status_interval }}
+}
+
+slaves = {
+{% for slave in lsyncd_slave_hosts %}
+    "{{ slave }}"{% if not loop.last %},
+{% endif %}
+{% endfor %}
+}
+
+sts = {
+{% for st in lsyncd_sources_and_targets %}
+    ["{{ st['source'] }}"] = "{{ st['target'] }}"{% if not loop.last %},
+{% endif %}
+{% endfor %}
+}
+
+for _, slave in ipairs(slaves) do
+    for source, target in pairs(sts) do
+        sync {
+            default.rsync,
+            source = source,
+            target = slave .. ':' .. target,
+            delay = {{ lsyncd_sync_delay }},
+            rsync = {
+                archive = true, -- implies owner, perms
+                rsh = "ssh -i {{ lsyncd_master_identity_file }} -l {{ lsyncd_slave_username }}",
+                rsync_path = "sudo /usr/bin/rsync"
+            }
+        }
+    end
+end

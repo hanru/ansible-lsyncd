@@ -1,0 +1,12 @@
+---
+
+# we're unable to change certain kernel parameters on some type of hosts
+# e.g. unprivileged containers
+- name: reload sysctl
+  command: sysctl -p
+  ignore_errors: yes
+  when: inventory_hostname == lsyncd_master_hostname
+
+- name: restart lsyncd
+  service: name=lsyncd state=restarted
+  when: inventory_hostname == lsyncd_master_hostname

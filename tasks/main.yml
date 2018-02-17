@@ -1,0 +1,104 @@
+---
+
+# TODO: how to do additional check if it's a valid master (i.e. in inventory)?
+- name: check if a master host is defined
+  fail: msg="You MUST define a master host."
+  when: lsyncd_master_hostname == None or lsyncd_master_hostname == ""
+
+- name: check if slave hosts are defined
+  fail: msg="You MUST define at least one slave host."
+  when: lsyncd_slave_hosts | length == 0
+
+- name: check if sources and targets are defined
+  fail: msg="You MUST defined at least one source and one target."
+  when: lsyncd_sources_and_targets | length == 0
+
+- name: install lsyncd and accompanying packages
+  apt: name={{ item }} state=present
+  with_items:
+    - rsync
+    - lsyncd
+    - sudo
+
+- name: raise fs.inotify.max_user_watches on master
+  lineinfile:
+    dest: /etc/sysctl.conf
+    state: present
+    regexp: '^fs.inotify.max_user_watches'
+    line: 'fs.inotify.max_user_watches={{ lsyncd_ionotify_max_watches }}'
+  notify: reload sysctl
+  when: inventory_hostname == lsyncd_master_hostname
+
+- name: make sure lsyncd related directories exist on master
+  file: path={{ item }} state=directory mode=0700
+  with_items:
+    - /etc/lsyncd
+    - /var/lib/lsyncd
+    - '{{ lsyncd_master_identity_file | dirname }}'
+  when: inventory_hostname == lsyncd_master_hostname
+
+- name: copy lsyncd main config to master
+  template:
+    src: lsyncd.conf.lua.j2
+    dest: /etc/lsyncd/lsyncd.conf.lua
+  notify: restart lsyncd
+  when: inventory_hostname == lsyncd_master_hostname
+
+- name: generate a new passwordless ssh key pair on master
+  command: ssh-keygen -f {{ lsyncd_master_identity_file }} -q -N ""
+  args:
+    creates: '{{ lsyncd_master_identity_file }}'
+  when: inventory_hostname == lsyncd_master_hostname
+
+- name: retrieve passwordless ssh public key from master
+  slurp: src={{ lsyncd_master_identity_file }}.pub
+  register: master_public_key
+  when: inventory_hostname == lsyncd_master_hostname
+
+# without setting the password property, password login of the user is disabled
+# https://stackoverflow.com/questions/39013796/create-user-with-option-disabled-password-by-ansible
+- name: create the user to run rsync on slaves
+  user:
+    name: '{{ lsyncd_slave_username }}'
+    home: '/var/lib/{{ lsyncd_slave_username }}'
+    state: present
+  when: inventory_hostname != lsyncd_master_hostname
+
+- name: make sure ~/.ssh directory exists on slaves
+  file:
+    path: '/var/lib/{{ lsyncd_slave_username }}/.ssh'
+    owner: '{{ lsyncd_slave_username }}'
+    group: '{{ lsyncd_slave_username }}'
+    state: directory
+    mode: 0700
+  when: inventory_hostname != lsyncd_master_hostname
+
+- name: create ~/.ssh/authorized_keys on slaves
+  authorized_key:
+    user: '{{ lsyncd_slave_username }}'
+    state: present
+    key: '{{ hostvars[lsyncd_master_hostname]["master_public_key"]["content"] | b64decode }}'
+  when: inventory_hostname != lsyncd_master_hostname
+
+- name: ssh into slaves once to save host keys on master
+  command: ssh -i {{ lsyncd_master_identity_file }} -l {{ lsyncd_slave_username }} -o StrictHostKeyChecking=no {{ item }}
+  with_items: '{{ lsyncd_slave_hosts }}'
+  when: inventory_hostname == lsyncd_master_hostname
+
+# {{ lsyncd_slave_username }} is allowed to 'sudo rsync' without entering password
+- name: grant sudo privilege on slaves
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^{{ lsyncd_slave_username }}'
+    line: '{{ lsyncd_slave_username }} ALL=(ALL) NOPASSWD: /usr/bin/rsync'
+    validate: 'visudo -cf %s'
+  when: inventory_hostname != lsyncd_master_hostname
+
+- name: enable lsyncd service on master
+  service: name=lsyncd enabled=yes state=started
+  when: inventory_hostname == lsyncd_master_hostname
+
+- name: disable lsyncd service on slaves
+  service: name=lsyncd enabled=no state=stopped
+  when: inventory_hostname != lsyncd_master_hostname
