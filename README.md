@@ -1,5 +1,5 @@
-lsyncd: Live Synchronization Configurations
-===========================================
+lsyncd: Live Syncing Configurations
+===================================
 
 [![Build Status](https://travis-ci.org/hanru/ansible-lsyncd.svg?branch=master)](https://travis-ci.org/hanru/ansible-lsyncd)
 
@@ -14,7 +14,7 @@ Because lsyncd is running in the background, a passwordless SSH key pair is gene
 
 On master, lsyncd status file locates at `/var/lib/lsyncd/status`, lsyncd log locates at `/var/log/lsyncd.log`. You should check these files regularly in case of possible problems.
 
-This role has been successfully tested on Debian Stretch (9.x).
+This role has been successfully tested on Debian Jessie (8.x), Debian Stretch (9.x) and Ubuntu Trusty (14.04), Ubuntu Xenial (16.04).
 
 Role Variables
 --------------
@@ -63,7 +63,7 @@ First prepare an [inventory](https://docs.ansible.com/ansible/latest/intro_inven
     test2       ansible_host=10.0.0.2       ansible_user=root
     test3       ansible_host=10.0.0.3       ansible_user=root
 
-Note that Ansible `inventory_hostname` variables are `test1`, `test2` and `test3` for this inventory. One of them must be the master host. We choose `test1` as our master. The other two will serve as slave hosts.
+Note that Ansible `inventory_hostname` variables are `test1`, `test2` and `test3` for this inventory. One of them must be the master host. We choose `test1` as our master. The other two will serve as slavs.
 
 Here's an example playbook.
 
