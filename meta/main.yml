@@ -1,6 +1,6 @@
 galaxy_info:
   author: hanru
-  description: Live Syncing Configurations
+  description: Lsyncd Configurations
   #company: your company (optional)
   license: MIT
   min_ansible_version: 2.0

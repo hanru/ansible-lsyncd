@@ -1,5 +1,5 @@
-lsyncd: Live Syncing Configurations
-===================================
+Lsyncd Configurations
+=====================
 
 [![Build Status](https://travis-ci.org/hanru/ansible-lsyncd.svg?branch=master)](https://travis-ci.org/hanru/ansible-lsyncd)
 
