@@ -3,7 +3,7 @@
 # maximum possible number of directories lsyncd watches.
 # This is a kernel limit which defaults to 8192.
 # Consider raise this number when lsyncd is watching huge number of files.
-lsyncd_ionotify_max_watches: 65536
+lsyncd_inotify_max_watches: 65536
 
 # hostname of lsyncd master. Should be one inventory_hostname in inventory.
 # There's one and only one master host.

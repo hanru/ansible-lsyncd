@@ -25,7 +25,7 @@
     dest: /etc/sysctl.conf
     state: present
     regexp: '^fs.inotify.max_user_watches'
-    line: 'fs.inotify.max_user_watches={{ lsyncd_ionotify_max_watches }}'
+    line: 'fs.inotify.max_user_watches={{ lsyncd_inotify_max_watches }}'
   notify: reload sysctl
   when: inventory_hostname == lsyncd_master_hostname
 

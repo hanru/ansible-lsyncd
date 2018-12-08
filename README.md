@@ -6,7 +6,7 @@ Lsyncd Configurations
 Overview
 --------
 
-This Ansible role configures synchronization from *master* host to *slave* host(s). **Lsyncd** daemon on master is responsible for synchronization. There's only one master whereas there can be more than one slaves. There can also be more than one synchronizing *sources* (on master) and *targets* (on slave).
+This Ansible role configures synchronization from *master* host to *slave* host(s). [Lsyncd](https://github.com/axkibe/lsyncd) daemon on master is responsible for synchronization. There's only one master whereas there can be more than one slaves. There can also be more than one synchronizing *sources* (on master) and *targets* (on slave).
 
 On master, the lsyncd daemon is running as *root*. On slaves, a dedicated *lsyncd* user is created. This user is capable of executing `sudo rsync` so that synced files can have permissions preserved. When synchronizing, root `ssh` into slaves as lsyncd user and executing `rsync` command there.
 
@@ -19,9 +19,9 @@ This role has been successfully tested on Debian Jessie (8.x), Debian Stretch (9
 Role Variables
 --------------
 
-    lsyncd_ionotify_max_watches: 65536
+    lsyncd_inotify_max_watches: 65536
 
-The maximum possible number of directories lsyncd watches. This is a Linux kernel limit which defaults to 8192 (?). Consider raise this number when lsyncd is watching huge number of files.
+The maximum possible number of directories lsyncd watches. This is a Linux kernel limit (fs.inotify.max_user_watches) which defaults to 8192 on Debian. Consider raise this number when lsyncd is watching huge number of files.
 
     lsyncd_master_hostname:
 
