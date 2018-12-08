@@ -64,6 +64,15 @@
     state: present
   when: inventory_hostname != lsyncd_master_hostname
 
+- name: fix possible ~ permission problem on slaves
+  file:
+    path: '/var/lib/{{ lsyncd_slave_username }}'
+    owner: '{{ lsyncd_slave_username }}'
+    group: '{{ lsyncd_slave_username }}'
+    state: directory
+    mode: 0700
+  when: inventory_hostname != lsyncd_master_hostname
+
 - name: make sure ~/.ssh directory exists on slaves
   file:
     path: '/var/lib/{{ lsyncd_slave_username }}/.ssh'
